@@ -18,6 +18,14 @@ export class AuthController {
     return resp.redirect(`http://localhost:4200/profile?accessToken=${token}`);
   }
 
+  @Get('linkedin/callback')
+  @UseGuards(GithubAuthGuard)
+  async loginWithLinkedin(@Req() req: Request, @Res() resp: Response) {
+    console.log('req.user', req.user);
+    const token = await this.authService.login(req.user);
+    return resp.redirect(`http://localhost:4200/profile?accessToken=${token}`);
+  }
+
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   async me(@Req() req: Request, @CurrentUser() user: any) {
