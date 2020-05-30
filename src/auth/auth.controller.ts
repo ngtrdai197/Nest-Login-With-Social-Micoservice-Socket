@@ -4,7 +4,9 @@ import { Request, Response } from 'express';
 
 import { AuthService } from '@/auth/auth.service';
 import { GithubAuthGuard } from '@/common/services';
-import { CurrentUser } from '@/common/decorator/current-user.decorator';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { LoginDto } from './auth.dto';
+import { IUser } from '@/user/interface/user.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -12,17 +14,29 @@ export class AuthController {
 
   @Get('github/callback')
   @UseGuards(GithubAuthGuard)
-  async loginWithGithub(@Req() req: Request, @Res() resp: Response) {
-    console.log('req.user', req.user);
-    const token = await this.authService.login(req.user);
+  async loginWithGithub(
+    @CurrentUser() currentUser: IUser,
+    @Res() resp: Response,
+  ) {
+    const login: LoginDto = {
+      username: currentUser.username,
+      password: currentUser.password,
+    };
+    const token = await this.authService.login(login);
     return resp.redirect(`http://localhost:4200/profile?accessToken=${token}`);
   }
 
   @Get('linkedin/callback')
   @UseGuards(GithubAuthGuard)
-  async loginWithLinkedin(@Req() req: Request, @Res() resp: Response) {
-    console.log('req.user', req.user);
-    const token = await this.authService.login(req.user);
+  async loginWithLinkedin(
+    @CurrentUser() currentUser: IUser,
+    @Res() resp: Response,
+  ) {
+    const login: LoginDto = {
+      username: currentUser.username,
+      password: currentUser.password,
+    };
+    const token = await this.authService.login(login);
     return resp.redirect(`http://localhost:4200/profile?accessToken=${token}`);
   }
 

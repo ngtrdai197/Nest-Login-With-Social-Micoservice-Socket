@@ -1,28 +1,48 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 
-import { CONSTATNS } from '@/common/definition';
+import { Constants } from '@/common/definition';
+import { UserService } from '@/user/user.service';
+import { IUser } from '@/user/interface/user.interface';
+import { CreateUserDto } from '@/user/dto/create-user.interface';
+import { LoginDto, IValidation } from './auth.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    @InjectModel('user') private readonly userModel: Model<any, {}>,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
-  create(user: any) {
-    return this.userModel.create(user);
+  async validate(validate: IValidation) {
+    const user = await this.userService.findOne({
+      username: validate.username,
+    });
+    if (!user) throw new UnauthorizedException('Unauthorized');
+    return user;
   }
 
-  findOne(githubId: string) {
-    return this.userModel.findOne({ githubId });
+  async validateWithOAuth(validate: CreateUserDto): Promise<IUser> {
+    const user = await this.userService.findOne({
+      githubId: validate.githubId,
+    });
+    if (user) return user;
+    return this.userService.create(validate);
   }
 
-  async login(user: any) {
-    if (user) {
-      return await jwt.sign(user, CONSTATNS.SECRET_KEY);
-    }
-    return null;
+  async login(login: LoginDto) {
+    const user = await this.userService.findOne({ username: login.username });
+    if (!user)
+      throw new HttpException(
+        'User does not exist. Please check again!',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    return this.genToken({ username: user.username });
   }
+
+  private genToken = (payload: IValidation) =>
+    jwt.sign(payload, Constants.SECRET_KEY);
 }
