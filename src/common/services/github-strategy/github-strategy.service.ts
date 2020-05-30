@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-github';
 
-import { CONSTATNS, TypeOAuth } from '@/common/definition';
+import { TypeOAuth, Constants } from '@/common/definition';
 import { AuthService } from '@/auth/auth.service';
+import { CreateUserDto } from '@/user/dto/create-user.interface';
 
 @Injectable()
 export class GithubStrategyService extends PassportStrategy(
@@ -13,8 +13,8 @@ export class GithubStrategyService extends PassportStrategy(
 ) {
   constructor(private readonly authService: AuthService) {
     super({
-      clientID: CONSTATNS.GITHUB.clientID,
-      clientSecret: CONSTATNS.GITHUB.clientSecret,
+      clientID: Constants.GITHUB.clientID,
+      clientSecret: Constants.GITHUB.clientSecret,
       callbackURL: 'http://localhost:3000/auth/github/callback',
     });
   }
@@ -26,12 +26,13 @@ export class GithubStrategyService extends PassportStrategy(
     cb: (err: any, user: any) => void,
   ) {
     const { id, username, profileUrl } = profile;
-    let user: any;
+    let githubUser: any;
+    /* eslint-disable @typescript-eslint/camelcase */
     if (profile._json) {
       const {
         _json: { avatar_url, created_at, updated_at, email },
       } = profile;
-      user = {
+      githubUser = {
         githubId: id,
         username,
         profileUrl,
@@ -41,18 +42,15 @@ export class GithubStrategyService extends PassportStrategy(
         email,
         accessToken,
       };
-      cb(null, user);
+      cb(null, githubUser);
     }
     cb(null, { id, username, profileUrl });
-    const exist = await this.authService.findOne(id);
-    if (!exist) {
-      const newUser = await this.authService.create({
-        username: user.username,
-        avatar_url: user.avatar_url,
-        githubId: user.id,
-      });
-      return newUser;
-    }
-    return exist;
+    const newUser: CreateUserDto = {
+      username: githubUser.username,
+      avatarUrl: githubUser.avatar_url,
+      githubId: githubUser.id,
+    };
+
+    return this.authService.validateWithOAuth(newUser);
   }
 }

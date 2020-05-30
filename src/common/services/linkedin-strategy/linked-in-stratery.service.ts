@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-linkedin-oauth2';
-import { TypeOAuth, CONSTATNS } from '@/common/definition';
+
+import { TypeOAuth, Constants } from '@/common/definition';
 
 @Injectable()
 export class LinkedinStrategyService extends PassportStrategy(
@@ -10,13 +11,14 @@ export class LinkedinStrategyService extends PassportStrategy(
 ) {
   constructor() {
     super({
-      clientID: CONSTATNS.LINKED_IN.clientID,
-      clientSecret: CONSTATNS.LINKED_IN.clientSecret,
+      clientID: Constants.LINKED_IN.clientID,
+      clientSecret: Constants.LINKED_IN.clientSecret,
       callbackURL: 'http://localhost:3000/auth/linkedin/callback',
       scope: ['r_emailaddress', 'r_basicprofile'],
       state: true,
     });
   }
+
   validate(
     accessToken: string,
     refreshToken: string,
