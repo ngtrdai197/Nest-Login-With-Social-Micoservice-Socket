@@ -40,9 +40,9 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
 
-    return this.genToken({ username: user.username });
+    return this.generateToken({ username: user.username });
   }
 
-  private genToken = (payload: IValidation) =>
+  private generateToken = (payload: IValidation) =>
     jwt.sign(payload, Constants.SECRET_KEY);
 }

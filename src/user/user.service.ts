@@ -18,4 +18,8 @@ export class UserService {
   async findOne(conditions: { [key: string]: any }) {
     return this.userModel.findOne(conditions);
   }
+
+  async findAll() {
+    return this.userModel.find();
+  }
 }
